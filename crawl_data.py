@@ -4,6 +4,10 @@ import json
 import yt_dlp
 import os
 
+# Global variables
+LIMIT = 10  # Common limit for videos per playlist or total
+MAX_RESULTS_PER_REQUEST = 10  # Max results per API request
+
 # Your API key from Google Cloud Console
 API_KEY = 'AIzaSyBpa1uprQ9PLW_7ASmEyC-lOPKJT1zYBiE'
 
@@ -13,7 +17,7 @@ def youtube_api_client():
     return youtube
 
 # Search for playlists based on a query
-def search_playlists(youtube, query, max_results=2):
+def search_playlists(youtube, query, max_results=MAX_RESULTS_PER_REQUEST):
     request = youtube.search().list(
         part="snippet",
         q=query,
@@ -24,11 +28,11 @@ def search_playlists(youtube, query, max_results=2):
     return response
 
 # Get video IDs from a playlist
-def get_playlist_videos(youtube, playlist_id, max_results=2):
+def get_playlist_videos(youtube, playlist_id, max_results=MAX_RESULTS_PER_REQUEST):
     videos = []
     next_page_token = None
 
-    while len(videos) < 10:  # Limit to 10 songs
+    while len(videos) < LIMIT:
         request = youtube.playlistItems().list(
             part="snippet",
             playlistId=playlist_id,
@@ -40,12 +44,12 @@ def get_playlist_videos(youtube, playlist_id, max_results=2):
         for item in response['items']:
             video_id = item['snippet']['resourceId']['videoId']
             videos.append(video_id)
-            if len(videos) >= 10:  # Stop once we have 10 videos
+            if len(videos) >= LIMIT:
                 break
 
         next_page_token = response.get('nextPageToken', None)
-        if not next_page_token or len(videos) >= 10:
-            break  # No more pages or we've reached 10 songs
+        if not next_page_token or len(videos) >= LIMIT:
+            break
 
         time.sleep(1)  # Avoid hitting rate limits
 
@@ -104,7 +108,7 @@ def download_audio_from_youtube(video_url, download_path='./'):
         return None  # Audio download failed
 
 # Function to fetch playlist songs, download audio, and save info to JSON
-def fetch_playlist_songs_and_download_audio(query="classic hits USUK OR classic Vietnamese songs", max_results=2, total_results=10, download_path='./songs', json_output='./songs_info.json'):
+def fetch_playlist_songs_and_download_audio(query="classic hits USUK OR classic Vietnamese songs", max_results=MAX_RESULTS_PER_REQUEST, total_results=LIMIT, download_path='./songs', json_output='./songs_info.json'):
     youtube = youtube_api_client()
     songs_info = []  # List to hold information about each song
 
@@ -160,4 +164,4 @@ def fetch_playlist_songs_and_download_audio(query="classic hits USUK OR classic 
     print(f"Downloaded {len(songs_info)} songs. Information saved to {json_output}")
 
 # Example usage
-fetch_playlist_songs_and_download_audio(query="classic hits USUK", max_results=2, total_results=10, download_path='./songs', json_output='./songs_info.json')
+fetch_playlist_songs_and_download_audio(query="classic hits USUK", max_results=MAX_RESULTS_PER_REQUEST, total_results=LIMIT, download_path='./songs', json_output='./songs_info.json')
