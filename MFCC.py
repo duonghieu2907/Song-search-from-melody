@@ -1,6 +1,6 @@
-import librosa
-import numpy as np
 import os
+import numpy as np
+from extract_mfcc import extract_mfcc  # Import hàm extract_mfcc
 
 # Thư mục chứa file âm thanh
 data_dir = "dataset/"
@@ -14,26 +14,9 @@ for file_name in os.listdir(data_dir):
     if file_name.endswith(".mp3"):  # Thay đổi sang .mp3
         file_path = os.path.join(data_dir, file_name)
         
-        # Load file âm thanh (librosa hỗ trợ .mp3 nếu ffmpeg được cài đặt)
-        y, sr = librosa.load(file_path, sr=None)
+        # Sử dụng hàm extract_mfcc để trích xuất MFCC
+        file_mfcc, sr = extract_mfcc(file_path, segment_duration)
         
-        # Tính số mẫu cho mỗi đoạn 4 giây
-        segment_samples = segment_duration * sr
-        
-        # Danh sách chứa MFCC cho từng đoạn
-        file_mfcc = []
-
-        # Chia bài hát thành các đoạn nhỏ
-        for start in range(0, len(y), segment_samples):
-            end = min(start + segment_samples, len(y))  # Đảm bảo không vượt quá chiều dài của file âm thanh
-            segment = y[start:end]
-            
-            # Trích xuất MFCC cho đoạn âm thanh
-            mfcc = librosa.feature.mfcc(y=segment, sr=sr, n_mfcc=13)
-            
-            # Lưu MFCC của đoạn âm thanh này vào danh sách
-            file_mfcc.append(mfcc)
-
         # Lưu các MFCC của file vào dictionary
         features[file_name] = file_mfcc
 

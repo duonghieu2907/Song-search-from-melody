@@ -2,7 +2,7 @@ import librosa
 import numpy as np
 
 # Hàm tính MFCC cho một file âm thanh
-def process_mfcc(input_audio_path, segment_duration=4):
+def extract_mfcc(input_audio_path, segment_duration=4):
     # Load file âm thanh (librosa hỗ trợ .mp3 nếu ffmpeg được cài đặt)
     y, sr = librosa.load(input_audio_path, sr=None)
     
