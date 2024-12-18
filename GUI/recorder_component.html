@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Recorder</title>
+    <style>
+        /* General font styling for consistency */
+        body, p, button {
+            font-family: Arial, sans-serif; 
+            font-size: 16px;
+            color: #333; 
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Recorder button styling */
+        .record-btn {
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #d12f2f;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border: none;
+            color: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .record-btn:hover {
+            background-color: #a62828;
+            transform: scale(1.05);
+        }
+
+        .recording {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.9); }
+            100% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
+        }
+
+        /* Text styling under the button */
+        #status {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555; /* Slightly lighter gray for better contrast */
+            text-align: center;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="recordButton" class="record-btn">🎤</button>
+        <p id="status">Press to Record</p>
+    </div>
+
+    <script>
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        const recordButton = document.getElementById("recordButton");
+        const statusText = document.getElementById("status");
+
+        recordButton.addEventListener("click", () => {
+            navigator.vibrate(200); // Vibration effect
+
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        });
+
+        function startRecording() {
+            isRecording = true;
+            recordButton.classList.add("recording");
+            statusText.textContent = "Recording...";
+
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+            });
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            recordButton.classList.remove("recording");
+            statusText.textContent = "Recording Stopped";
+
+            mediaRecorder.stop();
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                // Automatically download recorded file
+                const a = document.createElement("a");
+                a.href = audioUrl;
+                a.download = "recording.wav";
+                a.click();
+
+            };
+        }
+    </script>
+</body>
+</html>
