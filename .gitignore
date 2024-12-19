@@ -161,6 +161,4 @@ cython_debug/
 /msd_env
 # Ignore output directory
 output/
-
-# Ignore all .db files
-*.db
+songs/

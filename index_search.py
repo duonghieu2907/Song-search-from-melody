@@ -78,9 +78,17 @@ def process_audio_files(input_dir: str, output_dir: str, clap_model: CLAP):
 
     if not audio_files:
         print("No audio files found in the input directory.")
-        return
+        return []
+
+    processed_files = []
 
     for audio_file in audio_files:
+        # Kiểm tra nếu file vector .npy đã tồn tại
+        output_file = os.path.join(output_dir, Path(audio_file).stem + ".npy")
+        if os.path.exists(output_file):
+            print(f"File {output_file} already exists. Skipping.")
+            continue
+
         try:
             # Load audio file
             audio = AudioSegment.from_file(audio_file)
@@ -113,15 +121,15 @@ def process_audio_files(input_dir: str, output_dir: str, clap_model: CLAP):
             # Normalize mean embedding
             normalized_embedding = mean_embedding / np.linalg.norm(mean_embedding, keepdims=True)
 
-            # Tên file output .npy
-            output_file = os.path.join(output_dir, Path(audio_file).stem + ".npy")
-
             # Lưu vector hóa
             np.save(output_file, normalized_embedding)
+            processed_files.append(output_file)
 
             print(f"Processed and saved: {output_file}")
         except Exception as e:
             print(f"Error processing file {audio_file}: {e}")
+
+    return processed_files
 
 
 # Hàm tìm kiếm file audio tương tự
@@ -171,22 +179,27 @@ if __name__ == "__main__":
     milvus_manager = MilvusManager(db_path=database_path, collection_name=collection_name)
 
     # Bước 1: Xử lý các file audio và lưu vector hóa
-    process_audio_files(input_directory, output_directory, clap_model)
+    print("Processing audio files...")
+    new_vector_files = process_audio_files(input_directory, output_directory, clap_model)
 
     # Bước 2: Tạo cơ sở dữ liệu Milvus
     milvus_manager.create_collection()
 
-    # Chèn dữ liệu vào Milvus
-    vector_files = [str(file) for file in Path(output_directory).rglob("*.npy")]
-    vector_data = [
-        {
-            "vector": np.load(file).tolist(),
-            "audio_name": Path(file).stem,
-        }
-        for file in vector_files
-    ]
-    milvus_manager.insert_vectors(vector_data)
+    # Chèn dữ liệu mới vào Milvus
+    if new_vector_files:
+        print("Inserting new vectors into Milvus...")
+        vector_data = [
+            {
+                "vector": np.load(file).tolist(),
+                "audio_name": Path(file).stem,
+            }
+            for file in new_vector_files
+        ]
+        milvus_manager.insert_vectors(vector_data)
+    else:
+        print("No new vectors to insert into the database.")
 
     # Bước 3: Tìm kiếm file audio tương tự
-    query_audio = "./query.wav"  # File audio query
-    search_similar_audio(query_audio, clap_model, milvus_manager, top_k=5)
+    query_audio = "./Bản-ghi-Mới-525.wav"  # File audio query
+    print("Searching for similar audio files...")
+    search_similar_audio(query_audio, clap_model, milvus_manager, top_k=10)
