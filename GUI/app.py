@@ -1,5 +1,18 @@
+import sys
+import os
 import streamlit as st
+import json
 import re
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from index_search import MilvusManager, CLAP, search_similar_audio  # Add this import statement
+
+
+# Function to load data from a JSON file
+def load_video_data():
+    # Load the JSON data from the file
+    with open('data.json', 'r', encoding='utf-8') as file:
+        video_data = json.load(file)
+    return video_data
 
 # Function to extract the video ID and generate thumbnail URL
 def get_youtube_thumbnail(youtube_link):
@@ -23,8 +36,14 @@ st.write("Upload an MP3 file or record your voice to search for a song.")
 # Option Selection
 option = st.radio("How would you like to proceed?", ("Upload an MP3 File", "Record Your Voice"))
 
-# Initialize Uploaded File Variable
+# Initialize
 uploaded_file = None
+video_data = load_video_data()
+database_path = "../milvus_demo.db"
+collection_name = "audio_collection"
+clap_model = CLAP()
+milvus_manager = MilvusManager(db_path=database_path, collection_name=collection_name)
+print(video_data)
 
 # Option 1: Upload MP3 File
 if option == "Upload an MP3 File":
@@ -57,13 +76,36 @@ if st.button("🔍 Search for the Song"):
     if uploaded_file is None:
         st.warning("Please upload a file before searching for a song!")
     else:
-        st.info("The matching song is:")
+        # st.info("The matching song is:")
         
-        # Generate thumbnail URL
-        thumbnail_url = get_youtube_thumbnail(YOUTUBE_LINK)
+        # # Generate thumbnail URL
+        # thumbnail_url = get_youtube_thumbnail(YOUTUBE_LINK)
         
-        # Display clickable title and thumbnail
-        st.markdown(f"### [🎵 {SONG_TITLE}]({YOUTUBE_LINK})")
-        if thumbnail_url:
-            st.image(thumbnail_url, caption=SONG_TITLE, use_container_width=True)
-        st.markdown(f"[Watch on YouTube]({YOUTUBE_LINK})")
+        # # Display clickable title and thumbnail
+        # st.markdown(f"### [🎵 {SONG_TITLE}]({YOUTUBE_LINK})")
+        # if thumbnail_url:
+        #     st.image(thumbnail_url, caption=SONG_TITLE, use_container_width=True)
+        # st.markdown(f"[Watch on YouTube]({YOUTUBE_LINK})")
+                # Tìm kiếm các bài hát tương tự
+        results = search_similar_audio(query_file=uploaded_file, clap_model=clap_model, milvus_manager=milvus_manager, top_k=10)
+
+        # Hiển thị kết quả
+        for song_title, similarity in results:
+            # Tìm kiếm link YouTube tương ứng trong video_data
+            youtube_link = None
+            for video in video_data:
+                if video['title'] == song_title:
+                    youtube_link = video['video_url']
+                    break
+            
+            if youtube_link:
+                # Generate thumbnail URL
+                thumbnail_url = get_youtube_thumbnail(youtube_link)
+                
+                # Display song name, thumbnail and YouTube link
+                st.markdown(f"### [🎵 {song_title}]({youtube_link})")
+                if thumbnail_url:
+                    st.image(thumbnail_url, caption=song_title, use_container_width=True)
+                st.markdown(f"[Watch on YouTube]({youtube_link})")
+            else:
+                st.warning(f"Video for '{song_title}' not found!")

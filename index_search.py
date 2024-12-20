@@ -133,8 +133,16 @@ def process_audio_files(input_dir: str, output_dir: str, clap_model: CLAP):
 
 
 # Hàm tìm kiếm file audio tương tự
-def search_similar_audio(query_file: str, clap_model: CLAP, milvus_manager: MilvusManager, top_k: int):
-    audio = AudioSegment.from_file(query_file)
+def search_similar_audio(query_file, clap_model: CLAP, milvus_manager: MilvusManager, top_k: int):
+    # Giả sử query_file là một đối tượng file đã tải lên (Streamlit file uploader)
+    
+    # Lưu file tạm vào ổ đĩa
+    temp_file_path = "temp_query_file.wav"
+    with open(temp_file_path, "wb") as f:
+        f.write(query_file.read())  # Lưu nội dung file tải lên vào file tạm
+
+    # Đọc file audio
+    audio = AudioSegment.from_wav(temp_file_path)
 
     # Chia nhỏ query audio thành các đoạn 10 giây
     chunk_length_ms = 10 * 1000  # 10 giây
@@ -152,6 +160,9 @@ def search_similar_audio(query_file: str, clap_model: CLAP, milvus_manager: Milv
         # Xóa file tạm
         os.remove(temp_chunk_path)
 
+    # Xóa file tạm
+    os.remove(temp_file_path)
+
     if not embeddings:
         print("No embeddings generated for the query file. Exiting.")
         return
@@ -162,9 +173,13 @@ def search_similar_audio(query_file: str, clap_model: CLAP, milvus_manager: Milv
 
     # Tìm kiếm trong Milvus
     results = milvus_manager.search_vectors(mean_embedding, top_k)
+    
+    # Hiển thị kết quả
     print(f"Top {top_k} similar audio files:")
     for audio_name, distance in results:
         print(f"Audio Name: {audio_name}, Distance: {distance}")
+    
+    return results
 
 
 if __name__ == "__main__":

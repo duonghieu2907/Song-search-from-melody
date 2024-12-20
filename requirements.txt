@@ -1,0 +1,8 @@
+numpy
+pymilvus
+laion-clap
+pydub
+torch
+torchvision
+fastapi
+uvicorn
