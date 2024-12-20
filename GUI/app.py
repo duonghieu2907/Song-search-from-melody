@@ -137,4 +137,5 @@ if st.button("🔍 Search for the Song"):
                 st.markdown(f"### [🎵 {song_title}]({youtube_link})")
                 st.image(thumbnail_url, caption=song_title, use_container_width=True)
             else:
-                st.warning(f"Video for '{song_title}' not found!")
+                st.markdown(f"### 🎵 {song_title}")
+                st.warning("Due to our limited data in the JSON file, no video link is available for this song.")
