@@ -3,8 +3,11 @@ import os
 import streamlit as st
 import json
 import re
+from io import BytesIO
+from pydub import AudioSegment
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from index_search import MilvusManager, CLAP, search_similar_audio  # Add this import statement
+from index_search import MilvusManager, CLAP, search_similar_audio
 
 
 # Function to load data from a JSON file
@@ -14,19 +17,13 @@ def load_video_data():
         video_data = json.load(file)
     return video_data
 
-# Function to extract the video ID and generate thumbnail URL
-def get_youtube_thumbnail(youtube_link):
-    try:
-        # Extract video ID using regex
-        video_id = re.search(r"v=([a-zA-Z0-9_-]+)", youtube_link).group(1)
-        thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
-        return thumbnail_url
-    except Exception as e:
-        return None
-
-# Placeholder YouTube link and title
-YOUTUBE_LINK = "https://www.youtube.com/watch?v=BgUFNi5MvzE"
-SONG_TITLE = "Nơi Pháo Hoa Rực Rỡ (Đi Để Trở Về 8) - Orange x Hoàng Dũng"
+# Function to convert MP3 to WAV
+def convert_mp3_to_wav(mp3_file):
+    mp3_audio = AudioSegment.from_file(mp3_file, format="mp3")
+    wav_buffer = BytesIO()
+    mp3_audio.export(wav_buffer, format="wav")
+    wav_buffer.seek(0)
+    return wav_buffer
 
 # Title
 st.set_page_config(page_title="Song Search from Melody", page_icon="🎶")
@@ -43,14 +40,19 @@ database_path = "../milvus_demo.db"
 collection_name = "audio_collection"
 clap_model = CLAP()
 milvus_manager = MilvusManager(db_path=database_path, collection_name=collection_name)
-print(video_data)
 
 # Option 1: Upload MP3 File
 if option == "Upload an MP3 File":
     uploaded_file = st.file_uploader("Choose an MP3 or WAV file", type=["mp3", "wav"])
     if uploaded_file:
-        st.success("File uploaded successfully! 🎧")
-        st.audio(uploaded_file, format="audio/mp3", start_time=0)
+        if uploaded_file.type == "audio/mpeg":  # Check if the uploaded file is an MP3
+            st.info("Converting MP3 to WAV...")
+            converted_wav = convert_mp3_to_wav(uploaded_file)
+            st.success("File converted to WAV format successfully! 🎧")
+            st.audio(converted_wav, format="audio/wav", start_time=0)
+        else:
+            st.success("WAV file uploaded successfully! 🎧")
+            st.audio(uploaded_file, format="audio/wav", start_time=0)
 
 # Option 2: Record Your Voice
 elif option == "Record Your Voice":
@@ -76,36 +78,24 @@ if st.button("🔍 Search for the Song"):
     if uploaded_file is None:
         st.warning("Please upload a file before searching for a song!")
     else:
-        # st.info("The matching song is:")
-        
-        # # Generate thumbnail URL
-        # thumbnail_url = get_youtube_thumbnail(YOUTUBE_LINK)
-        
-        # # Display clickable title and thumbnail
-        # st.markdown(f"### [🎵 {SONG_TITLE}]({YOUTUBE_LINK})")
-        # if thumbnail_url:
-        #     st.image(thumbnail_url, caption=SONG_TITLE, use_container_width=True)
-        # st.markdown(f"[Watch on YouTube]({YOUTUBE_LINK})")
-                # Tìm kiếm các bài hát tương tự
-        results = search_similar_audio(query_file=uploaded_file, clap_model=clap_model, milvus_manager=milvus_manager, top_k=10)
+        query_file = uploaded_file
 
-        # Hiển thị kết quả
+        # Perform the search
+        results = search_similar_audio(query_file=query_file, clap_model=clap_model, milvus_manager=milvus_manager, top_k=10)
+
+        # Display results
         for song_title, similarity in results:
-            # Tìm kiếm link YouTube tương ứng trong video_data
+            # Find corresponding YouTube link in video_data
             youtube_link = None
             for video in video_data:
                 if video['title'] == song_title:
                     youtube_link = video['video_url']
+                    thumbnail_url = video['thumbnail_url']
                     break
-            
+
             if youtube_link:
-                # Generate thumbnail URL
-                thumbnail_url = get_youtube_thumbnail(youtube_link)
-                
-                # Display song name, thumbnail and YouTube link
+                # Display song name, thumbnail, and YouTube link
                 st.markdown(f"### [🎵 {song_title}]({youtube_link})")
-                if thumbnail_url:
-                    st.image(thumbnail_url, caption=song_title, use_container_width=True)
-                st.markdown(f"[Watch on YouTube]({youtube_link})")
+                st.image(thumbnail_url, caption=song_title, use_container_width=True)
             else:
                 st.warning(f"Video for '{song_title}' not found!")
