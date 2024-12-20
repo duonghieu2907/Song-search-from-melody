@@ -58,19 +58,30 @@ def convert_mp3_to_wav(mp3_file):
     wav_buffer.seek(0)
     return wav_buffer
 
-# Title
-st.set_page_config(page_title="Song Search from Melody", page_icon="🎶")
-st.title("🎶 Song Search from Melody 🎶")
-
-# Brief Introduction
-st.markdown(
-    """
-    **Welcome to Song Search from Melody!** 🎵
-    Our powerful engine allows you to find songs by uploading an audio file or recording your voice. Whether you're humming, whistling, or have a recording, we'll help you find your favorite songs effortlessly.
-    """
+# Set page config
+st.set_page_config(
+    page_title="Audio Search System",
+    page_icon="🎵",
+    layout="wide",
 )
 
-# Add banners for group info and references
+# Title and Overview Section
+st.title("🎵 Song Search from Melody")
+st.markdown("""
+Welcome to our **Audio Search System**! This application allows users to search for songs based on melodies provided via either audio recordings or file uploads.
+""")
+
+# Sidebar for the Table of Contents (left banner)
+st.sidebar.markdown("## Table of Contents")
+st.sidebar.markdown("""
+1. [About the Project]
+2. [Overview]
+3. [System Architecture]
+4. [Features]
+5. [Try It Out!]
+""")
+
+# Sidebar for group info and references
 st.sidebar.markdown(
     """
     ## Group Information
@@ -90,6 +101,91 @@ st.sidebar.markdown(
     """
 )
 
+# About the Project Section
+st.subheader("📄 About the Project")
+st.markdown("""
+This project aims to address the limitations of traditional text-based music retrieval methods by developing a **melody-based song search system**.  
+Here’s an overview of the key aspects of the system:
+""")
+
+# Abstract Display
+st.markdown("""
+**Abstract:**
+
+This report presents the development of a melody-based song search system designed to address the limitations of traditional text-based music retrieval methods.  
+By enabling users to search for songs through humming, whistling, or uploading audio files, the system offers a more intuitive and accessible way of finding music.  
+
+The core of the system is powered by the **Contrastive Language-Audio Pretraining (CLAP)** model for robust audio embedding extraction and the **Milvus vector database** for scalable and efficient similarity search.  
+
+### Highlights:
+- **Dataset Preparation**: Automated crawling and processing of audio content from YouTube.
+- **Preliminary Evaluations**: Promising results for standard audio inputs, such as clear recordings, but challenges remain for noisier inputs like humming and whistling.
+- **Future Directions**:
+  - Refining the embedding extraction pipeline.
+  - Expanding the dataset with diverse user-generated queries.
+  - Optimizing the system for real-world scalability.
+
+This system paves the way for inclusive music search solutions, catering to users regardless of their knowledge of song names or lyrics.
+""")
+
+# Overview Section
+st.subheader("🔍 Overview")
+st.markdown("""
+Our melody-based song search system leverages cutting-edge machine learning and vector similarity search techniques to revolutionize music retrieval.  
+Key features of the system include:
+- **Audio Input Options**: Users can hum, whistle, or upload an MP3 file to search for songs intuitively.
+- **Real-time Processing**: The optimized backend ensures quick results with high accuracy.
+- **Inclusive Search**: Designed to work regardless of your knowledge of song names or lyrics.
+""")
+
+# System Architecture Section
+st.subheader("🛠️ System Architecture")
+st.markdown("""
+The system is built with a robust and scalable architecture to handle diverse user inputs and deliver fast, accurate results. The core components are:
+1. **Frontend**:  
+   - A streamlined and intuitive web interface for user interactions.  
+   - Built using **Streamlit** for ease of deployment and responsiveness.
+2. **Backend**:  
+   - Processes input audio and extracts embeddings using the **CLAP** model for feature extraction.  
+   - Performs similarity search using the **Milvus vector database**.
+3. **Database**:  
+   - Embedding storage using Milvus, enabling scalable and efficient retrieval.  
+   - Supports a large corpus of song embeddings for extensive coverage.
+""")
+
+# Features Section
+st.subheader("✨ Features")
+st.markdown("""
+Discover the powerful features of our melody-based search system:
+""")
+st.columns([1, 1])  # Split layout
+
+with st.expander("📂 Audio File Upload"):
+    st.markdown("""
+    - Upload an MP3 file of a song or melody directly from your device.  
+    - The system analyzes the file to find the closest match in our database.
+    """)
+
+with st.expander("🎤 Voice Recording"):
+    st.markdown("""
+    - Record a melody using your microphone.  
+    - Ideal for humming, whistling, or playing short snippets of a tune.
+    """)
+
+with st.expander("⚡ Real-time Search"):
+    st.markdown("""
+    - Get results in real-time with our optimized vector similarity search.  
+    - Experience minimal latency even with large datasets.
+    """)
+
+with st.expander("🌍 Accessible and User-Friendly"):
+    st.markdown("""
+    - Easy-to-use interface designed for users of all backgrounds.  
+    - No technical knowledge required—just upload or hum!
+    """)
+
+# Input Section
+st.subheader("🎵 Try It Out!")
 # Option Selection
 option = st.radio("How would you like to proceed?", ("Upload an MP3 File", "Record Your Voice"))
 
