@@ -214,7 +214,7 @@ if __name__ == "__main__":
     else:
         print("No new vectors to insert into the database.")
 
-    # Bước 3: Tìm kiếm file audio tương tự
-    query_audio = "./Bản-ghi-Mới-525.wav"  # File audio query
-    print("Searching for similar audio files...")
-    search_similar_audio(query_audio, clap_model, milvus_manager, top_k=10)
+    # # Bước 3: Tìm kiếm file audio tương tự
+    # query_audio = "./Bản-ghi-Mới-525.wav"  # File audio query
+    # print("Searching for similar audio files...")
+    # search_similar_audio(query_audio, clap_model, milvus_manager, top_k=10)
