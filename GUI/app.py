@@ -61,7 +61,34 @@ def convert_mp3_to_wav(mp3_file):
 # Title
 st.set_page_config(page_title="Song Search from Melody", page_icon="🎶")
 st.title("🎶 Song Search from Melody 🎶")
-st.write("Upload an MP3 file or record your voice to search for a song.")
+
+# Brief Introduction
+st.markdown(
+    """
+    **Welcome to Song Search from Melody!** 🎵
+    Our powerful engine allows you to find songs by uploading an audio file or recording your voice. Whether you're humming, whistling, or have a recording, we'll help you find your favorite songs effortlessly.
+    """
+)
+
+# Add banners for group info and references
+st.sidebar.markdown(
+    """
+    ## Group Information
+    - **Members:** Trung-Hieu Duong, Nhat-Nam Huynh, Nhat-Thanh Tran, Duc-Tho Nguyen, Thanh-Tien Tran
+    - **Department:** Information Technology
+    - **University:** University of Science, VNU-HCM
+    """
+)
+
+st.sidebar.markdown(
+    """
+    ## References
+    - [Milvus Lite](https://github.com/milvus-io/milvus-lite)
+    - [LAION-CLAP](https://github.com/LAION-AI/CLAP)
+    - [Pydub](https://github.com/jiaaro/pydub)
+    - [YouTube-dl](https://github.com/ytdl-org/youtube-dl)
+    """
+)
 
 # Option Selection
 option = st.radio("How would you like to proceed?", ("Upload an MP3 File", "Record Your Voice"))
@@ -119,6 +146,7 @@ if st.button("🔍 Search for the Song"):
     if uploaded_file is None or processed_wav is None:
         st.warning("Please upload a file before searching for a song!")
     else:
+        st.info("Matching songs are:")
         # Perform the search
         results = search_similar_audio(query_file=processed_wav, clap_model=clap_model, milvus_manager=milvus_manager, top_k=10)
 
@@ -138,4 +166,4 @@ if st.button("🔍 Search for the Song"):
                 st.image(thumbnail_url, caption=song_title, use_container_width=True)
             else:
                 st.markdown(f"### 🎵 {song_title}")
-                st.warning("Due to our limited data in the JSON file, no video link is available for this song.")
+                st.warning("Due to our limited data, no video link is available for this song.")
