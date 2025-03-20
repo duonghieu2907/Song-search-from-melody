@@ -65,9 +65,9 @@ Upload an audio file to find similar songs in the indexed database.
 4. The top **matching results are returned**.
 
 ## Crawling Audio from YouTube
-The system can **extract audio** from YouTube videos:
-- Download YouTube videos.
-- Extract audio and convert it to WAV.
+The system cannot extract audio automatically. We perform the process separately and then add the data into the system manually:
+- Get the links to YouTube videos.
+- Extract audio from the links and convert it to WAV.
 - Process and index audio for search.
 
 ## Future Improvements
@@ -80,4 +80,4 @@ The system can **extract audio** from YouTube videos:
 We welcome contributions! Feel free to submit **issues** or **pull requests**.
 
 ## License
-This project is licensed under the MIT License. See `LICENSE` for details.
+This project is for educational purposes only.
